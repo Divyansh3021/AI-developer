@@ -1,6 +1,6 @@
 # from langchain.tools import ToolBase
-from langchain_community.utilities import SerpAPIWrapper
-
+from utils.filepaths import extract_file_paths
+from utils.create_file import create_files
 from langchain_google_genai import ChatGoogleGenerativeAI
 from crewai import Agent, Task, Crew, Process
 
@@ -19,8 +19,17 @@ req_agent = Agent(
 
 file_structure_agent = Agent(
     role="File Structure creator",
-    goal = "Given the requirements of a software, create a file structure for this software project.",
+    goal = "Given the requirements of a software, return a file structure for this software project.",
     backstory="You are a Senior System Architect having more than 10 years of experience in creating structures of software.",
+    verbose=False,
+    allow_delegation= False,
+    llm=llm
+)
+
+file_creator = Agent(
+    role="File creator",
+    goal = "Given the file structure of a project, return a list containing the path of every file mentioned.",
+    backstory="You are a Software Developer.",
     verbose=False,
     allow_delegation= False,
     llm=llm
@@ -43,17 +52,25 @@ task1 = Task(
 
 task2 = Task(
     description="""
-    Based on the requirements of obtained, create a file structure for this project.
+    Based on the requirements of obtained, return a file structure for this project.
     """,
-    expected_output="File Structure of the software mentioned.",
+    expected_output="File Structure for the software mentioned.",
     agent=req_agent
+)
+
+task3 = Task(
+    description="""
+    Based on the file structure obtained, return a list containing the path of every file mentioned.
+    """,
+    expected_output="list of paths of file mentioned in file structure.",
+    agent=file_creator
 )
 
 # Instantiate your crew with a sequential process
 crew = Crew(
-    agents=[req_agent, file_structure_agent],
-    tasks=[task1, task2],
-    verbose=True
+    agents=[req_agent, file_structure_agent, file_creator],
+    tasks=[task1, task2, task3],
+    verbose=False
 )
 
 # Get your crew to work!
@@ -61,3 +78,8 @@ result = crew.kickoff()
 
 # print("######################")
 print(result)
+
+filePaths = extract_file_paths(result)
+
+# creating files.
+create_files(filePaths)
