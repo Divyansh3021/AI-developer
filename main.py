@@ -10,7 +10,7 @@ llm = ChatGoogleGenerativeAI(model="gemini-pro", verbose=True, temperature=0.5, 
 # Agents
 req_agent = Agent(
     role='Senior Requirement Analyzer',
-    goal='Obtain the requirements of a software from given details',
+    goal='Obtain the important requirements of the software from given details',
     backstory="""You are a Senior Requirement Analyzer having more than 10 years of experience as a Product manager.""",
     verbose=False,
     allow_delegation=False,
@@ -38,13 +38,13 @@ code_desc = Agent(
 # Create tasks for your agents
 task1 = Task(
     description="""
-    I want to create a Calculator software having these basic features:
+    I want to create a Calculator software using Python language having these basic features:
     1. Addition
     2. Subtraction
     3. Division
     4. Multiplication
 
-    The coding language should be Python.
+    Only Python language should be used.
     """,
     expected_output="Requirements of the software mentioned.",
     agent=req_agent
@@ -71,7 +71,7 @@ task3 = Task(
 crew = Crew(
     agents=[req_agent, file_structure_agent, code_desc],
     tasks=[task1, task2, task3],
-    verbose=True
+    verbose=False
 )
 
 

@@ -1,11 +1,14 @@
+import time
 from crewai import Crew, Agent, Task
-from utils.filepaths import extract_file_paths
-from utils.create_file import create_files
-from langchain_google_genai import ChatGoogleGenerativeAI
 
+from langchain_google_genai import ChatGoogleGenerativeAI
+import google.generativeai as genai
 from main import file_description, task2 
 
 API_KEY = "AIzaSyCS1bV6_bfizb1tAcQEB9BvCTtqCCLlGFo"
+genai.configure(api_key= API_KEY)
+model = genai.GenerativeModel(model_name="gemini-pro")
+
 llm = ChatGoogleGenerativeAI(model="gemini-pro", verbose=True, temperature=0.5, google_api_key = API_KEY)
 
 file_creator = Agent(
@@ -25,9 +28,9 @@ file_creation = Task(
 
     {task2.output.raw_output}
 
-    , return a list containing only the path of every file mentioned without using '.
+    , return a list containing only the path of every file mentioned, also remove any ' or " or ` .
     """,
-    expected_output="list of paths of file mentioned in file structure without using '",
+    expected_output="""list of paths of file mentioned in file structure without any ` or ' or " .""",
     agent=file_creator
 )
 
@@ -39,10 +42,4 @@ creation_crew = Crew(
 
 filepaths = creation_crew.kickoff()
 
-print(filepaths)
-filePaths = extract_file_paths(filepaths)
-
-for file in filePaths:
-    print(file)
-# # creating files.
-create_files(filePaths)
+print("Filepaths: ",filepaths)
