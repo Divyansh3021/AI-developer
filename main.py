@@ -35,6 +35,15 @@ file_creator = Agent(
     llm=llm
 )
 
+code_desc = Agent(
+    role="File descriptionist",
+    goal = "Given the file structure and requirements of the project. Generate a detailed description of every classes and functions that a file should have,their parameters, also mention their return types.",
+    backstory="You are a System Architect with an experience of more than 10 years.",
+    verbose=False,
+    allow_delegation= False,
+    llm=llm
+)
+
 # Create tasks for your agents
 task1 = Task(
     description="""
@@ -60,6 +69,14 @@ task2 = Task(
 
 task3 = Task(
     description="""
+    Based on the file structure obtained, return a detailed description of every classes and functions that a file should have,their parameters, also mention their return types.
+    """,
+    expected_output="description of every file, their classes, functions, arguements and return types.",
+    agent=code_desc
+)
+
+task4 = Task(
+    description="""
     Based on the file structure obtained, return a list containing the path of every file mentioned.
     """,
     expected_output="list of paths of file mentioned in file structure.",
@@ -68,9 +85,9 @@ task3 = Task(
 
 # Instantiate your crew with a sequential process
 crew = Crew(
-    agents=[req_agent, file_structure_agent, file_creator],
+    agents=[req_agent, file_structure_agent, code_desc],
     tasks=[task1, task2, task3],
-    verbose=False
+    verbose=True
 )
 
 # Get your crew to work!
@@ -79,7 +96,7 @@ result = crew.kickoff()
 # print("######################")
 print(result)
 
-filePaths = extract_file_paths(result)
+# filePaths = extract_file_paths(result)
 
-# creating files.
-create_files(filePaths)
+# # creating files.
+# create_files(filePaths)
