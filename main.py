@@ -26,15 +26,6 @@ file_structure_agent = Agent(
     llm=llm
 )
 
-file_creator = Agent(
-    role="File creator",
-    goal = "Given the file structure of a project, return a list containing the path of every file mentioned.",
-    backstory="You are a Software Developer.",
-    verbose=False,
-    allow_delegation= False,
-    llm=llm
-)
-
 code_desc = Agent(
     role="File descriptionist",
     goal = "Given the file structure and requirements of the project. Generate a detailed description of every classes and functions that a file should have,their parameters, also mention their return types.",
@@ -75,13 +66,6 @@ task3 = Task(
     agent=code_desc
 )
 
-task4 = Task(
-    description="""
-    Based on the file structure obtained, return a list containing the path of every file mentioned.
-    """,
-    expected_output="list of paths of file mentioned in file structure.",
-    agent=file_creator
-)
 
 # Instantiate your crew with a sequential process
 crew = Crew(
@@ -90,13 +74,8 @@ crew = Crew(
     verbose=True
 )
 
+
 # Get your crew to work!
-result = crew.kickoff()
+file_description = crew.kickoff()
 
-# print("######################")
-print(result)
-
-# filePaths = extract_file_paths(result)
-
-# # creating files.
-# create_files(filePaths)
+# print("\n\n\n\n\n\n","task2: ",task2.output.raw_output,"\n\n\n\n\n")
