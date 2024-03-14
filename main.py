@@ -1,4 +1,3 @@
-# from langchain.tools import ToolBase
 from utils.filepaths import extract_file_paths
 from utils.create_file import create_files
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -27,9 +26,9 @@ file_structure_agent = Agent(
 )
 
 code_desc = Agent(
-    role="File descriptionist",
-    goal = "Given the file structure and requirements of the project. Generate a detailed description of every classes and functions that a file should have,their parameters, also mention their return types.",
-    backstory="You are a System Architect with an experience of more than 10 years.",
+    role="File summary writer.",
+    goal = "Given the file structure and requirements of the project. Generate a summary of files.",
+    backstory="You are a Senior documentation writer with an experience of more than 10 years.",
     verbose=False,
     allow_delegation= False,
     llm=llm
@@ -60,7 +59,9 @@ task2 = Task(
 
 task3 = Task(
     description="""
-    Based on the file structure obtained, return a detailed description of every classes and functions that a file should have,their parameters, also mention their return types.
+    Based on the file structure obtained, generate a summary containing:
+    1. classes and function a file have and their parameters.
+    2. interaction with other files.
     """,
     expected_output="description of every file, their classes, functions, arguements and return types.",
     agent=code_desc
@@ -71,7 +72,7 @@ task3 = Task(
 crew = Crew(
     agents=[req_agent, file_structure_agent, code_desc],
     tasks=[task1, task2, task3],
-    verbose=False
+    verbose=True
 )
 
 
