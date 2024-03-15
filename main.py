@@ -37,13 +37,13 @@ code_desc = Agent(
 # Create tasks for your agents
 task1 = Task(
     description="""
-    I want to create a Calculator software using Python language having these basic features:
-    1. Addition
-    2. Subtraction
-    3. Division
-    4. Multiplication
+    A library management software using with the option of:
+    1. issuing book
+    2. returning book
+    3. report a missing book
+    4. finding book in existing library
 
-    Only Python language should be used.
+    Python language must be used.
     """,
     expected_output="Requirements of the software mentioned.",
     agent=req_agent
@@ -60,6 +60,7 @@ task2 = Task(
 task3 = Task(
     description="""
     Based on the file structure obtained, generate a summary containing:
+    1. Their use and types of content it stores.
     1. classes and function a file have and their parameters.
     2. interaction with other files.
     """,
