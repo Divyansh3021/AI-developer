@@ -2,9 +2,11 @@ from utils.filepaths import extract_file_paths
 from utils.create_file import create_files
 from langchain_google_genai import ChatGoogleGenerativeAI
 from crewai import Agent, Task, Crew, Process
+import dotenv
+dotenv.load_dotenv()
+import os
 
-API_KEY = "AIzaSyCS1bV6_bfizb1tAcQEB9BvCTtqCCLlGFo"
-llm = ChatGoogleGenerativeAI(model="gemini-pro", verbose=True, temperature=0.5, google_api_key = API_KEY)
+llm = ChatGoogleGenerativeAI(model="gemini-pro", verbose=True, temperature=0.5, google_api_key = os.getenv('API_KEY'))
 
 # Agents
 req_agent = Agent(
@@ -16,14 +18,7 @@ req_agent = Agent(
     llm=llm
 )
 
-file_structure_agent = Agent(
-    role="File Structure creator",
-    goal = "Given the requirements of a software, return a file structure for this software project.",
-    backstory="You are a Senior System Architect having more than 10 years of experience in creating structures of software.",
-    verbose=False,
-    allow_delegation= False,
-    llm=llm
-)
+
 
 code_desc = Agent(
     role="File summary writer.",
@@ -34,9 +29,19 @@ code_desc = Agent(
     llm=llm
 )
 
+
+verifier = Agent(
+    role = "Verify task and corresponding output",
+    goal = "Given the task and corresponding result from an LLM, verify whether given result is according to the task or not. Return True or False only.",\
+    backstory = "You are a requirement verifier",
+    verbose = True,
+    allow_delegation = False,
+    llm = llm
+)
+
 # Create tasks for your agents
-task1 = Task(
-    description="""
+
+task1_desc = """
     A library management software using with the option of:
     1. issuing book
     2. returning book
@@ -44,18 +49,23 @@ task1 = Task(
     4. finding book in existing library
 
     Python language must be used.
-    """,
+    """
+
+task1 = Task(
+    description = task1_desc,
     expected_output="Requirements of the software mentioned.",
     agent=req_agent
 )
 
-task2 = Task(
-    description="""
-    Based on the requirements of obtained, return a file structure for this project.
+verifiy_task1 = Task(
+    description = f"""
+    Verify whether requirements obtained is correct according to the task.
+    task: {task1_desc}
     """,
-    expected_output="File Structure for the software mentioned.",
-    agent=req_agent
+    expected_output = "True or False",
+    agent = verifier
 )
+
 
 task3 = Task(
     description="""
@@ -71,13 +81,52 @@ task3 = Task(
 
 # Instantiate your crew with a sequential process
 crew = Crew(
-    agents=[req_agent, file_structure_agent, code_desc],
-    tasks=[task1, task2, task3],
+    agents=[req_agent, verifier],
+    tasks=[task1, verifiy_task1],
     verbose=True
 )
-
-
 # Get your crew to work!
 file_description = crew.kickoff()
 
-# print("\n\n\n\n\n\n","task2: ",task2.output.raw_output,"\n\n\n\n\n")
+
+
+
+file_structure_agent = Agent(
+    role="File Structure creator",
+    goal = "Given the requirements of a software, return a file structure for this software project.",
+    backstory="You are a Senior System Architect having more than 10 years of experience in creating structures of software.",
+    verbose=False,
+    allow_delegation= False,
+    llm=llm
+)
+
+task2_desc = f"""
+    Based on these requirements 
+
+    {task1.output.raw_output}
+
+    , return a file structure for this project.
+    """
+
+task2 = Task(
+    description = task2_desc,
+    expected_output="File Structure for the software mentioned.",
+    agent=file_structure_agent
+)
+
+verifiy_task2 = Task(
+    description = f"""
+    Verify whether file structure obtained is correct according to the task.
+    task: {task2_desc}
+    """,
+    expected_output = "True or False",
+    agent = verifier
+)
+
+crew2 = Crew(
+    agents=[file_structure_agent, verifier],
+    tasks=[task2, verifiy_task2],
+    verbose=True
+)
+
+file_structure = crew2.kickoff()
